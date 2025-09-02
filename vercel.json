@@ -1,5 +1,7 @@
 {
   "rewrites": [
+    { "source": "/api/recently-played.png", "destination": "/api/recently-played.png.ts" },
+    { "source": "/api/recentlyplayed.png",  "destination": "/api/recently-played.png.ts" },
     { "source": "/api/recently-played", "destination": "/api/recently_played" },
     { "source": "/api/recentlyplayed", "destination": "/api/recently_played" }
   ]

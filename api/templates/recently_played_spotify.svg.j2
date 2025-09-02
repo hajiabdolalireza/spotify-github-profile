@@ -28,12 +28,20 @@
 
   <rect x="0" y="0" width="{{ W }}" height="{{ H }}" rx="{{ R }}" ry="{{ R }}" class="card"/>
 
-  <g transform="translate({{ PAD_X }}, {{ PAD_Y }})">
-    <svg x="0" y="0" width="36" height="36" viewBox="0 0 24 24" aria-hidden="true">
-      <path fill="#1DB954" d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.45 17.4c-.23.38-.71.5-1.09.27-3.01-1.82-6.8-2.24-11.26-1.21-.43.1-.87-.18-.97-.61-.1-.43.18-.87.61-.97 4.8-1.12 9-.65 12.4 1.33.38.23.5.71.31 1.19zm1.55-3.5c-.29.47-.9.62-1.37.33-3.44-2.12-8.67-2.74-12.72-1.49-.53.16-1.09-.15-1.24-.68-.16-.53.15-1.09.68-1.24 4.6-1.31 10.35-.65 14.31 1.67.47.29.62.9.33 1.37zm.11-3.73c-.35.56-1.09.73-1.65.38-3.87-2.35-10.26-2.91-15-.64-.6.21-1.24-.12-1.45-.72-.21-.6.12-1.24.72-1.45 5.52-1.92 12.56-1.31 17 .91.56.35.73 1.09.38 1.65z"/>
+  <!-- Header -->
+  <g transform="translate(24,28)">
+    <!-- Official Spotify glyph, crisp via viewBox (24x24) -->
+    <svg x="0" y="0" width="28" height="28" viewBox="0 0 24 24" role="img" aria-label="Spotify">
+      <path fill="#1DB954" d="M12 1.5C6.21 1.5 1.5 6.21 1.5 12S6.21 22.5 12 22.5 22.5 17.79 22.5 12 17.79 1.5 12 1.5zm5.21 15.24c-.19.31-.59.41-.9.22-2.47-1.51-5.58-1.85-9.24-1-.36.08-.72-.15-.81-.51-.08-.36.15-.72.51-.81 3.96-.9 7.36-.51 10.08 1.15.32.19.42.59.23.9zm1.25-2.8c-.24.38-.75.5-1.14.26-2.82-1.73-7.11-2.24-10.44-1.21-.43.13-.88-.12-1.01-.55-.13-.43.12-.88.55-1.01 3.8-1.15 8.52-.58 11.73 1.35.39.24.51.75.26 1.14zm.11-2.93c-.28.45-.87.6-1.33.32-3.22-1.92-8.14-2.1-11.06-1.14-.5.16-1.03-.12-1.19-.62-.16-.5.12-1.03.62-1.19 3.35-1.05 8.77-.83 12.42 1.31.46.27.61.87.33 1.33z"/>
     </svg>
-    <text x="64" y="30" class="tSpot">Spotify</text>
-    <text x="184" y="30" class="tHead">Recently Played</text>
+    <text x="44" y="22" fill="#FFFFFF" font-size="22" font-weight="700"
+          font-family='-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,"Helvetica Neue",sans-serif'>
+      Spotify
+    </text>
+    <text x="44" y="46" fill="#FFFFFF" opacity="0.85" font-size="22" font-weight="600"
+          font-family='-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,"Helvetica Neue",sans-serif'>
+      Recently Played
+    </text>
   </g>
 
   <line x1="0" x2="{{ W }}" y1="{{ PAD_Y + 50 }}" y2="{{ PAD_Y + 50 }}" class="sep"/>
