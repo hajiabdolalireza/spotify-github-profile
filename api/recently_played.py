@@ -1,7 +1,7 @@
 import hashlib
 import html
 import time
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from flask import Flask, Response, redirect, render_template, request
 
@@ -29,9 +29,11 @@ def _svg_response(svg: str) -> Response:
     if request.headers.get("If-None-Match") == etag:
         resp = Response(status=304)
     else:
-        resp = Response(svg, mimetype="image/svg+xml")
+        resp = Response(svg, content_type="image/svg+xml; charset=utf-8")
     resp.headers["Cache-Control"] = CACHE_CONTROL
     resp.headers["ETag"] = etag
+    if resp.status_code == 304:
+        resp.headers["Content-Type"] = "image/svg+xml; charset=utf-8"
     return resp
 
 
@@ -95,6 +97,15 @@ def recently_played_redirect():
 @app.route("/api/recently-played", methods=["GET"])
 def recently_played_view():
     limit = parse_limit(request.args.get("limit"))
+    theme = (request.args.get("theme") or "").lower()
+    width: Optional[int]
+    try:
+        width_val = request.args.get("width")
+        width = int(width_val) if width_val is not None else None
+        if width is not None and width <= 0:
+            width = None
+    except (TypeError, ValueError):
+        width = None
     db = get_firestore_db()
     uid = _get_user_id(db)
     if not uid:
@@ -117,7 +128,29 @@ def recently_played_view():
             db.collection("users").document(uid).set(info, merge=True)
             data = spotify.get_recently_played(info["access_token"], limit=limit)
         items = data.get("items", []) if data else []
-        svg = _render_recent(items)
+        if theme in ("spotify", "sp"):
+            mapped: List[Dict[str, Any]] = []
+            for item in items:
+                track = item.get("track", {})
+                artists = track.get("artists", []) or []
+                artist = ", ".join(a.get("name", "") for a in artists)
+                images = track.get("album", {}).get("images", []) or []
+                cover = images[0].get("url", "") if images else ""
+                mapped.append(
+                    {
+                        "title": track.get("name", ""),
+                        "artist": artist,
+                        "cover": cover,
+                        "when": item.get("played_at", ""),
+                    }
+                )
+            svg = render_template(
+                "recently_played_spotify.svg.j2",
+                items=mapped,
+                W=width or 920,
+            )
+        else:
+            svg = _render_recent(items)
         return _svg_response(svg)
     except spotify.RateLimitError:
         return _svg_response(_render_error("Spotify rate limit"))
