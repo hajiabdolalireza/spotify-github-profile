@@ -20,5 +20,13 @@
   "bugs": {
     "url": "https://github.com/hajiabdolalireza/spotify-github-profile/issues"
   },
-  "homepage": "https://github.com/hajiabdolalireza/spotify-github-profile#readme"
+  "homepage": "https://github.com/hajiabdolalireza/spotify-github-profile#readme",
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
 }
