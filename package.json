@@ -7,7 +7,8 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:node": "RESVG_JS_FORCE_WASM=1 node --test tests/*.mjs"
   },
   "repository": {
     "type": "git",
