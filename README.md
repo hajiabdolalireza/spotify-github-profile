@@ -63,6 +63,12 @@ Render a list of the last tracks you've listened to:
 <img src="https://spotify-github-profile.kittinanx.com/api/recently-played?uid=YOUR_SPOTIFY_ID" />
 ```
 
+Embed directly in your README:
+
+```
+![Spotify Recently Played](https://<your-app>.vercel.app/api/recently-played?uid=<YOUR_SPOTIFY_USER>&limit=5)
+```
+
 Query parameters:
 
 - `uid` or `user` – Spotify user id. If omitted and only one user token exists in Firestore, that user will be used.
@@ -132,15 +138,16 @@ Vercel CLI 20.1.2 dev (beta) — https://vercel.com/feedback
 ### Handy cURL commands
 
 ```
-curl -i 'http://localhost:3000/api/recently-played?uid=TEST&limit=3'
-curl -i 'http://localhost:3000/api/ping'
+curl -i 'https://<app>.vercel.app/api/ping'
+curl -i 'https://<app>.vercel.app/api/recently_played?uid=TEST'
+curl -i 'https://<app>.vercel.app/api/recently-played?uid=TEST&limit=5'
 ```
 
 ## Troubleshooting
 
-- **404 errors** – confirm the route file exists and that `vercel.json` contains the correct rewrites for the endpoint.
-- **No logs** – ensure the Flask application prints or logs to stdout so Vercel captures output.
-- **Paused project** – verify the Vercel project is active and not paused, otherwise requests will fail silently.
+- **404** – verify `vercel.json` rewrites and that the route file is in the deployment output.
+- **No logs** – ensure Flask logs to stdout; check Vercel project is not paused; verify requests hit the Python route (try `/api/ping`).
+- **Slow/blank images** – check timeouts/retries; GitHub caching via ETag works; try lowering the `limit`.
 
 ## How to Contribute
 

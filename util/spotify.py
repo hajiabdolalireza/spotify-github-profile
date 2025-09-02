@@ -31,6 +31,10 @@ class InvalidTokenError(Exception):
 class RateLimitError(Exception):
     pass
 
+
+class SpotifyTimeoutError(Exception):
+    pass
+
 def get_authorization():
 
     return b64encode(f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_SECRET_ID}".encode()).decode(
@@ -85,11 +89,14 @@ def _request_with_retry(url, headers, params=None, retries=1):
         return response
 
 
-def get_recently_play(access_token, limit=10):
+def get_recently_played(access_token, limit=5):
     headers = {"Authorization": f"Bearer {access_token}"}
-    response = _request_with_retry(
-        SPOTIFY_URL_RECENTLY_PLAY, headers, params={"limit": limit}
-    )
+    try:
+        response = _request_with_retry(
+            SPOTIFY_URL_RECENTLY_PLAY, headers, params={"limit": limit}, retries=1
+        )
+    except requests.Timeout as exc:  # pragma: no cover - network timeout
+        raise SpotifyTimeoutError("request timeout") from exc
     if response.status_code == 204:
         return {}
     if response.status_code == 401:
@@ -97,8 +104,7 @@ def get_recently_play(access_token, limit=10):
     if response.status_code == 429:
         raise RateLimitError("rate limited")
     response.raise_for_status()
-    response_json = response.json()
-    return response_json
+    return response.json()
 
 def get_now_playing(access_token):
 

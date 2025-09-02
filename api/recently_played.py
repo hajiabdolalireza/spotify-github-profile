@@ -1,14 +1,13 @@
-import time
 import hashlib
 import html
-from typing import Any, Dict
+import time
+from typing import Any, Dict, List
 
-from flask import Flask, Response, request, redirect, render_template
+from flask import Flask, Response, redirect, render_template, request
 
 from util.firestore import get_firestore_db
 from util import spotify
 from util.logging_utils import setup_logging
-
 
 app = Flask(__name__)
 setup_logging(app)
@@ -17,38 +16,12 @@ CACHE_CONTROL = "public, max-age=60, stale-while-revalidate=30"
 
 
 def parse_limit(value: Any) -> int:
+    """Parse ?limit ensuring 1 <= limit <= 10."""
     try:
         num = int(value)
     except (TypeError, ValueError):
         return 5
     return max(1, min(num, 10))
-
-
-def render_svg(items) -> str:
-    width, row_h, pad, img = 400, 40, 16, 32
-    if items:
-        height = max(2 * pad + 32 + (len(items) - 1) * row_h, 80)
-    else:
-        height = 80
-    return render_template(
-        "recently-played.svg.j2",
-        items=items,
-        width=width,
-        height=height,
-        pad=pad,
-        row_h=row_h,
-        img=img,
-    )
-
-
-def render_error(msg: str) -> str:
-    esc = html.escape(msg or "")
-    return (
-        '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="60">'
-        "<style>text { font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;"
-        " fill: #e6edf3; }svg { background: #0d1117; }</style>"
-        f'<text x="10" y="35" font-size="14">{esc}</text></svg>'
-    )
 
 
 def _svg_response(svg: str) -> Response:
@@ -65,7 +38,6 @@ def _svg_response(svg: str) -> Response:
 def _get_user_id(db) -> str:
     uid = request.args.get("uid") or request.args.get("user")
     if uid:
-        # allow only alphanumeric user ids
         return "".join(ch for ch in uid if ch.isalnum())
     users = list(db.collection("users").stream())
     if len(users) == 1:
@@ -87,11 +59,31 @@ def _ensure_access_token(db, uid: str, info: Dict[str, Any]) -> str:
         info.update(
             {
                 "access_token": refreshed["access_token"],
-                "token_expired_timestamp": now + int(refreshed.get("expires_in", 3600)) - 30,
+                "token_expired_timestamp": now
+                + int(refreshed.get("expires_in", 3600))
+                - 30,
             }
         )
         db.collection("users").document(uid).set(info, merge=True)
     return info["access_token"]
+
+
+def _render_recent(items: List[Dict[str, Any]]) -> str:
+    width, row_h, pad, img = 400, 40, 16, 32
+    height = max(80, pad * 2 + (len(items) or 1) * row_h)
+    return render_template(
+        "recently_played.svg.j2",
+        items=items,
+        width=width,
+        height=height,
+        pad=pad,
+        row_h=row_h,
+        img=img,
+    )
+
+
+def _render_error(msg: str) -> str:
+    return render_template("error.svg.j2", message=html.escape(msg or ""))
 
 
 @app.route("/api/recently_played", methods=["GET"])
@@ -105,15 +97,13 @@ def recently_played_view():
     limit = parse_limit(request.args.get("limit"))
     db = get_firestore_db()
     uid = _get_user_id(db)
-    app.logger.info("recently-played uid=%s limit=%s", uid or "", limit)
     if not uid:
-        svg = render_error("Please provide ?uid=<spotify id>")
-        return _svg_response(svg)
+        return _svg_response(_render_error("Please provide ?uid=<spotify id>"))
     try:
         info = _get_tokens(db, uid)
         token = _ensure_access_token(db, uid, info)
         try:
-            data = spotify.get_recently_play(token, limit=10)
+            data = spotify.get_recently_played(token, limit=limit)
         except spotify.InvalidTokenError:
             refreshed = spotify.refresh_token(info["refresh_token"])
             info.update(
@@ -125,13 +115,13 @@ def recently_played_view():
                 }
             )
             db.collection("users").document(uid).set(info, merge=True)
-            data = spotify.get_recently_play(info["access_token"], limit=10)
-        items = data.get("items", [])[:limit]
-        svg = render_svg(items)
+            data = spotify.get_recently_played(info["access_token"], limit=limit)
+        items = data.get("items", []) if data else []
+        svg = _render_recent(items)
         return _svg_response(svg)
     except spotify.RateLimitError:
-        return _svg_response(render_error("Spotify rate limit"))
-    except Exception as e:  # noqa: BLE001
-        return _svg_response(render_error(str(e)))
-
-
+        return _svg_response(_render_error("Spotify rate limit"))
+    except spotify.SpotifyTimeoutError:
+        return _svg_response(_render_error("Spotify timeout"))
+    except Exception as exc:  # noqa: BLE001
+        return _svg_response(_render_error(str(exc)))
