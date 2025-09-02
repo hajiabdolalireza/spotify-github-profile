@@ -11,6 +11,7 @@ import firebase_admin
 import os
 import json
 from util import spotify
+from util.logging_utils import setup_logging
 
 print("Starting Server")
 
@@ -23,6 +24,7 @@ firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 app = Flask(__name__)
+setup_logging(app)
 
 
 @app.route("/", defaults={"path": ""})

@@ -1,8 +1,10 @@
 from flask import Flask, Response, jsonify, render_template, redirect
 
 from util import spotify
+from util.logging_utils import setup_logging
 
 app = Flask(__name__)
+setup_logging(app)
 
 
 @app.route("/", defaults={"path": ""})

@@ -3,6 +3,7 @@ from base64 import b64decode, b64encode
 from dotenv import load_dotenv, find_dotenv
 
 from util.firestore import get_firestore_db
+from util.logging_utils import setup_logging
 
 load_dotenv(find_dotenv())
 
@@ -28,6 +29,7 @@ db = get_firestore_db()
 CACHE_TOKEN_INFO = {}
 
 app = Flask(__name__)
+setup_logging(app)
 
 
 @functools.lru_cache(maxsize=128)
