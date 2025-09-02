@@ -68,19 +68,43 @@ def test_spotify_theme_snapshot(client, monkeypatch):
     items = [
         {
             "track": {
-                "name": f"T{i}",
-                "artists": [{"name": f"A{i}"}],
-                "album": {"images": [{"url": f"https://img/{i}"}]},
+                "name": "T1",
+                "artists": [{"name": "A1"}],
+                "album": {"images": [{"url": "https://img/1"}]},
             },
-            "played_at": f"2024-01-0{i}",
-        }
-        for i in range(1, 4)
+            "played_at": "2024-01-04T23:59:00Z",
+        },
+        {
+            "track": {
+                "name": "T2",
+                "artists": [{"name": "A2"}],
+                "album": {"images": [{"url": "https://img/2"}]},
+            },
+            "played_at": "2024-01-04T22:00:00Z",
+        },
+        {
+            "track": {
+                "name": "T3",
+                "artists": [{"name": "A3"}],
+                "album": {"images": [{"url": "https://img/3"}]},
+            },
+            "played_at": "2024-01-02T00:00:00Z",
+        },
     ]
     db = _base_db()
     monkeypatch.setattr("api.recently_played.get_firestore_db", lambda: db)
     monkeypatch.setattr(
         "util.spotify.get_recently_played", lambda token, limit=3: {"items": items}
     )
+    from datetime import datetime, timezone
+
+    class FixedDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2024, 1, 5, tzinfo=timezone.utc)
+
+    monkeypatch.setattr("api.recently_played.datetime", FixedDatetime)
+
     resp = client.get("/api/recently-played?uid=u1&theme=spotify&limit=3")
     assert resp.status_code == 200
     assert resp.headers["Content-Type"] == "image/svg+xml; charset=utf-8"
