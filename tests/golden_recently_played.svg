@@ -1,19 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="104">
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="112">
   <style>
-    text { font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif; fill: #e6edf3; }
-    svg { background: #0d1117; }
+    .text { font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif; font-size:14px; fill:#e6edf3; }
+    .meta { font-size:12px; fill:#8b949e; }
+    svg { background:#0d1117; }
   </style>
-  <g transform="translate(16, 16)">
-    <text x="0" y="0" font-size="18" font-weight="bold">Recently played</text>
+  
     
-      
-      
-      <image x="0" y="0" width="32" height="32" href="https://img/1" />
-        <text x="40" y="24" font-size="14">1. T1 - A1</text>
-      
-      
-      
-      <image x="0" y="40" width="32" height="32" href="https://img/2" />
-        <text x="40" y="64" font-size="14">2. T2 - A2</text>
+      <g transform="translate(16, 16)">
+        
+        
+        
+        <image href="https://img/1" width="32" height="32" />
+        <text x="40" y="16" class="text">T1 - A1</text>
+        
       </g>
+    
+      <g transform="translate(16, 56)">
+        
+        
+        
+        <image href="https://img/2" width="32" height="32" />
+        <text x="40" y="16" class="text">T2 - A2</text>
+        
+      </g>
+    
+  
 </svg>

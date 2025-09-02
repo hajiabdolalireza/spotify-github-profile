@@ -305,7 +305,7 @@ def get_song_info(uid, show_offline):
     elif show_offline:
         return None, False, None, None
     else:
-        recent_plays = spotify.get_recently_play(access_token)
+        recent_plays = spotify.get_recently_played(access_token)
         size_recent_play = len(recent_plays["items"])
 
         # Handle empty recently play, should offline

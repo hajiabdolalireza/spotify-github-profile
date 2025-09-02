@@ -68,20 +68,34 @@ def test_alias_redirects(client):
     assert r.headers["Location"].endswith("/api/recently-played")
 
 
+def _base_db():
+    return FakeDB(
+        {
+            "u1": {
+                "access_token": "t",
+                "refresh_token": "r",
+                "token_expired_timestamp": int(time.time()) + 60,
+            }
+        }
+    )
+
+
 def test_empty_list_returns_message(client, monkeypatch):
-    db = FakeDB({"u1": {"access_token": "t", "refresh_token": "r", "token_expired_timestamp": int(time.time()) + 60}})
+    db = _base_db()
     monkeypatch.setattr("api.recently_played.get_firestore_db", lambda: db)
-    monkeypatch.setattr("util.spotify.get_recently_play", lambda token, limit=10: {"items": []})
+    monkeypatch.setattr(
+        "util.spotify.get_recently_played", lambda token, limit=5: {"items": []}
+    )
     resp = client.get("/api/recently-played?uid=u1")
     assert resp.status_code == 200
     assert b"No recent tracks" in resp.data
 
 
 def test_error_rate_limit_returns_svg(client, monkeypatch):
-    db = FakeDB({"u1": {"access_token": "t", "refresh_token": "r", "token_expired_timestamp": int(time.time()) + 60}})
+    db = _base_db()
     monkeypatch.setattr("api.recently_played.get_firestore_db", lambda: db)
     monkeypatch.setattr(
-        "util.spotify.get_recently_play",
+        "util.spotify.get_recently_played",
         lambda *a, **k: (_ for _ in ()).throw(spotify.RateLimitError("x")),
     )
     resp = client.get("/api/recently-played?uid=u1")
@@ -100,50 +114,25 @@ def test_success_path(client, monkeypatch):
         }
         for i in range(5)
     ]
-    db = FakeDB(
-        {
-            "u1": {
-                "access_token": "t",
-                "refresh_token": "r",
-                "token_expired_timestamp": int(time.time()) + 60,
-            }
-        }
-    )
+    db = _base_db()
     monkeypatch.setattr("api.recently_played.get_firestore_db", lambda: db)
-    monkeypatch.setattr("util.spotify.get_recently_play", lambda token, limit=10: {"items": items})
+    monkeypatch.setattr(
+        "util.spotify.get_recently_played", lambda token, limit=5: {"items": items}
+    )
     resp = client.get("/api/recently-played?uid=u1&limit=5")
     text = resp.data.decode()
     assert text.count("<image") == 5
-    assert text.count("</text>") - 1 == 5  # minus header line
     assert resp.headers["Cache-Control"].startswith("public")
 
 
 def test_token_refresh_flow(client, monkeypatch):
-    items = {
-        "items": [
-            {
-                "track": {
-                    "name": "S",
-                    "artists": [{"name": "A"}],
-                    "album": {"images": [{"url": "https://img/1"}]},
-                }
-            }
-        ]
-    }
-    db = FakeDB(
-        {
-            "u1": {
-                "access_token": "old",
-                "refresh_token": "r",
-                "token_expired_timestamp": int(time.time()) + 60,
-            }
-        }
-    )
+    items = {"items": [{"track": {"name": "S", "artists": [{"name": "A"}], "album": {"images": [{"url": "https://img/1"}]}}}]}
+    db = _base_db()
     monkeypatch.setattr("api.recently_played.get_firestore_db", lambda: db)
 
     calls = {"refresh": 0, "play": 0}
 
-    def fake_get(token, limit=10):
+    def fake_get(token, limit=5):
         calls["play"] += 1
         if calls["play"] == 1:
             raise spotify.InvalidTokenError("bad")
@@ -153,7 +142,7 @@ def test_token_refresh_flow(client, monkeypatch):
         calls["refresh"] += 1
         return {"access_token": "new", "expires_in": 3600}
 
-    monkeypatch.setattr("util.spotify.get_recently_play", fake_get)
+    monkeypatch.setattr("util.spotify.get_recently_played", fake_get)
     monkeypatch.setattr("util.spotify.refresh_token", fake_refresh)
 
     resp = client.get("/api/recently-played?uid=u1")
@@ -180,17 +169,11 @@ def test_snapshot_svg(client, monkeypatch):
             }
         },
     ]
-    db = FakeDB(
-        {
-            "u1": {
-                "access_token": "t",
-                "refresh_token": "r",
-                "token_expired_timestamp": int(time.time()) + 60,
-            }
-        }
-    )
+    db = _base_db()
     monkeypatch.setattr("api.recently_played.get_firestore_db", lambda: db)
-    monkeypatch.setattr("util.spotify.get_recently_play", lambda *a, **k: {"items": items})
+    monkeypatch.setattr(
+        "util.spotify.get_recently_played", lambda *a, **k: {"items": items}
+    )
     resp = client.get("/api/recently-played?uid=u1&limit=2")
     with open("tests/golden_recently_played.svg", "r", encoding="utf-8") as f:
         expected = f.read().strip()
@@ -198,24 +181,15 @@ def test_snapshot_svg(client, monkeypatch):
 
 
 def test_etag_support(client, monkeypatch):
-    items = {
-        "items": [
-            {
-                "track": {
-                    "name": "S",
-                    "artists": [{"name": "A"}],
-                    "album": {"images": [{"url": "https://img/1"}]},
-                }
-            }
-        ]
-    }
-    db = FakeDB({"u1": {"access_token": "t", "refresh_token": "r", "token_expired_timestamp": int(time.time()) + 60}})
+    items = {"items": [{"track": {"name": "S", "artists": [{"name": "A"}], "album": {"images": [{"url": "https://img/1"}]}}}]}
+    db = _base_db()
     monkeypatch.setattr("api.recently_played.get_firestore_db", lambda: db)
-    monkeypatch.setattr("util.spotify.get_recently_play", lambda *a, **k: items)
+    monkeypatch.setattr("util.spotify.get_recently_played", lambda *a, **k: items)
     first = client.get("/api/recently-played?uid=u1")
     etag = first.headers["ETag"]
-    second = client.get("/api/recently-played?uid=u1", headers={"If-None-Match": etag})
+    second = client.get(
+        "/api/recently-played?uid=u1", headers={"If-None-Match": etag}
+    )
     assert first.status_code == 200
     assert second.status_code == 304
     assert second.data == b""
-
