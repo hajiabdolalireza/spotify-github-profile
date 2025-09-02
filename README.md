@@ -76,6 +76,13 @@ Query parameters:
 
 Aliases `/api/recently_played` and `/api/recentlyplayed` redirect to the primary `/api/recently-played` endpoint.
 
+### 🎧 Recently Played (Spotify Theme)
+![Spotify Recently Played](https://<your-app>.vercel.app/api/recently-played?limit=5&theme=spotify)
+
+Optional width control:
+
+<img src="https://<your-app>.vercel.app/api/recently-played?limit=5&theme=spotify&width=600" />
+
 Health check endpoint:
 
 ```

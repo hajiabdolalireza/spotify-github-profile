@@ -1,0 +1,39 @@
+{% set row_h = 64 %}
+{% set header_h = 64 %}
+{% set pad = 24 %}
+{% set H = header_h + (items|length) * row_h %}
+{% set W = W or 920 %}
+<svg xmlns="http://www.w3.org/2000/svg" width="{{ W }}" height="{{ H }}" viewBox="0 0 {{ W }} {{ H }}">
+  <style>
+    .f{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,"Helvetica Neue",sans-serif;}
+    .title{font-size:24px;font-weight:700;fill:#ffffff;}
+    .track{font-size:16px;font-weight:700;fill:#ffffff;}
+    .artist{font-size:14px;fill:#A7A7A7;}
+    .time{font-size:14px;fill:#A7A7A7;text-anchor:end;}
+    .sep{stroke:#24292E;stroke-width:1;}
+  </style>
+  <rect width="100%" height="100%" rx="16" ry="16" fill="#161819" />
+  <g transform="translate({{pad}},32)">
+    <svg x="0" y="-12" width="24" height="24" viewBox="0 0 24 24">
+      <path fill="#1DB954" d="M12 0C5.371 0 0 5.371 0 12s5.371 12 12 12 12-5.371 12-12S18.629 0 12 0zm5.473 17.303a.748.748 0 01-1.028.245c-2.818-1.744-6.366-2.137-10.548-1.17a.75.75 0 11-.329-1.464c4.585-1.029 8.493-.571 11.494 1.361.35.217.46.677.245 1.028zm1.316-2.936a.937.937 0 01-1.284.306c-3.231-1.98-8.146-2.556-11.939-1.405a.938.938 0 01-.548-1.795c4.236-1.294 9.633-.667 13.341 1.64a.937.937 0 01.43 1.254zm.127-3.124c-3.705-2.174-9.36-2.372-12.714-1.304a1.125 1.125 0 11-.658-2.152c4.027-1.233 10.251-1.01 14.513 1.566a1.125 1.125 0 01-1.141 1.89z"/>
+    </svg>
+    <text x="32" y="0" class="f title">Spotify</text>
+    <text x="32" y="28" class="f title">Recently Played</text>
+  </g>
+  <line x1="0" y1="{{header_h}}" x2="{{W}}" y2="{{header_h}}" class="sep"/>
+  {% for it in items %}
+    {% set y = header_h + loop.index0 * row_h %}
+    <g transform="translate({{pad}}, {{ y + 10 }})">
+      <defs>
+        <clipPath id="cover{{ loop.index }}">
+          <rect width="44" height="44" rx="6" ry="6"/>
+        </clipPath>
+      </defs>
+      <image href="{{ it.cover }}" width="44" height="44" clip-path="url(#cover{{ loop.index }})" />
+      <text x="56" y="20" class="f track">{{ it.title }}</text>
+      <text x="56" y="40" class="f artist">{{ it.artist }}</text>
+      <text x="{{ W - pad*2 }}" y="32" class="f time">{{ it.when }}</text>
+    </g>
+    <line x1="0" y1="{{ y + row_h }}" x2="{{ W }}" y2="{{ y + row_h }}" class="sep"/>
+  {% endfor %}
+</svg>

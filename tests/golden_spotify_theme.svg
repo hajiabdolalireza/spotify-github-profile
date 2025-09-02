@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="256" viewBox="0 0 920 256">
+  <style>
+    .f{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,"Helvetica Neue",sans-serif;}
+    .title{font-size:24px;font-weight:700;fill:#ffffff;}
+    .track{font-size:16px;font-weight:700;fill:#ffffff;}
+    .artist{font-size:14px;fill:#A7A7A7;}
+    .time{font-size:14px;fill:#A7A7A7;text-anchor:end;}
+    .sep{stroke:#24292E;stroke-width:1;}
+  </style>
+  <rect width="100%" height="100%" rx="16" ry="16" fill="#161819" />
+  <g transform="translate(24,32)">
+    <svg x="0" y="-12" width="24" height="24" viewBox="0 0 24 24">
+      <path fill="#1DB954" d="M12 0C5.371 0 0 5.371 0 12s5.371 12 12 12 12-5.371 12-12S18.629 0 12 0zm5.473 17.303a.748.748 0 01-1.028.245c-2.818-1.744-6.366-2.137-10.548-1.17a.75.75 0 11-.329-1.464c4.585-1.029 8.493-.571 11.494 1.361.35.217.46.677.245 1.028zm1.316-2.936a.937.937 0 01-1.284.306c-3.231-1.98-8.146-2.556-11.939-1.405a.938.938 0 01-.548-1.795c4.236-1.294 9.633-.667 13.341 1.64a.937.937 0 01.43 1.254zm.127-3.124c-3.705-2.174-9.36-2.372-12.714-1.304a1.125 1.125 0 11-.658-2.152c4.027-1.233 10.251-1.01 14.513 1.566a1.125 1.125 0 01-1.141 1.89z"/>
+    </svg>
+    <text x="32" y="0" class="f title">Spotify</text>
+    <text x="32" y="28" class="f title">Recently Played</text>
+  </g>
+  <line x1="0" y1="64" x2="920" y2="64" class="sep"/>
+  
+    
+    <g transform="translate(24, 74)">
+      <defs>
+        <clipPath id="cover1">
+          <rect width="44" height="44" rx="6" ry="6"/>
+        </clipPath>
+      </defs>
+      <image href="https://img/1" width="44" height="44" clip-path="url(#cover1)" />
+      <text x="56" y="20" class="f track">T1</text>
+      <text x="56" y="40" class="f artist">A1</text>
+      <text x="872" y="32" class="f time">2024-01-01</text>
+    </g>
+    <line x1="0" y1="128" x2="920" y2="128" class="sep"/>
+  
+    
+    <g transform="translate(24, 138)">
+      <defs>
+        <clipPath id="cover2">
+          <rect width="44" height="44" rx="6" ry="6"/>
+        </clipPath>
+      </defs>
+      <image href="https://img/2" width="44" height="44" clip-path="url(#cover2)" />
+      <text x="56" y="20" class="f track">T2</text>
+      <text x="56" y="40" class="f artist">A2</text>
+      <text x="872" y="32" class="f time">2024-01-02</text>
+    </g>
+    <line x1="0" y1="192" x2="920" y2="192" class="sep"/>
+  
+    
+    <g transform="translate(24, 202)">
+      <defs>
+        <clipPath id="cover3">
+          <rect width="44" height="44" rx="6" ry="6"/>
+        </clipPath>
+      </defs>
+      <image href="https://img/3" width="44" height="44" clip-path="url(#cover3)" />
+      <text x="56" y="20" class="f track">T3</text>
+      <text x="56" y="40" class="f artist">A3</text>
+      <text x="872" y="32" class="f time">2024-01-03</text>
+    </g>
+    <line x1="0" y1="256" x2="920" y2="256" class="sep"/>
+  
+</svg>
