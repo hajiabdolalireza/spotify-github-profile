@@ -1,8 +1,9 @@
-import html
 import time
+import hashlib
+import html
 from typing import Any, Dict
 
-from flask import Flask, Response, request, redirect
+from flask import Flask, Response, request, redirect, render_template
 
 from util.firestore import get_firestore_db
 from util import spotify
@@ -23,50 +24,41 @@ def parse_limit(value: Any) -> int:
     return max(1, min(num, 10))
 
 
-def _escape(text: str) -> str:
-    return html.escape(text or "")
-
-
 def render_svg(items) -> str:
-    width, line_h, pad = 700, 22, 16
-    lines = [
-        f'<text x="0" y="{pad}" font-size="18" font-weight="bold">Recently played</text>'
-    ]
-    y = pad + 26
-    for i, it in enumerate(items, 1):
-        track = it.get("track", {})
-        name = track.get("name", "")
-        artists = ", ".join(a.get("name", "") for a in track.get("artists", []))
-        lines.append(
-            f'<text x="0" y="{y}" font-size="14">{i}. {_escape(name)} — {_escape(artists)}</text>'
-        )
-        y += line_h
-    height = max(y + pad, 80)
-    body = (
-        "\n".join(lines)
-        if items
-        else '<text x="0" y="30" font-size="14">No recent tracks</text>'
-    )
-    return (
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}">'
-        "<style>text { font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;"
-        " fill: #e6edf3; }svg { background: #0d1117; }</style>"
-        f'<g transform="translate(16,8)">{body}</g></svg>'
+    width, row_h, pad, img = 400, 40, 16, 32
+    if items:
+        height = max(2 * pad + 32 + (len(items) - 1) * row_h, 80)
+    else:
+        height = 80
+    return render_template(
+        "recently-played.svg.j2",
+        items=items,
+        width=width,
+        height=height,
+        pad=pad,
+        row_h=row_h,
+        img=img,
     )
 
 
 def render_error(msg: str) -> str:
+    esc = html.escape(msg or "")
     return (
         '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="60">'
         "<style>text { font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;"
         " fill: #e6edf3; }svg { background: #0d1117; }</style>"
-        f'<text x="10" y="35" font-size="14">{_escape(msg)}</text></svg>'
+        f'<text x="10" y="35" font-size="14">{esc}</text></svg>'
     )
 
 
 def _svg_response(svg: str) -> Response:
-    resp = Response(svg, mimetype="image/svg+xml")
+    etag = hashlib.md5(svg.encode("utf-8")).hexdigest()
+    if request.headers.get("If-None-Match") == etag:
+        resp = Response(status=304)
+    else:
+        resp = Response(svg, mimetype="image/svg+xml")
     resp.headers["Cache-Control"] = CACHE_CONTROL
+    resp.headers["ETag"] = etag
     return resp
 
 
@@ -113,6 +105,7 @@ def recently_played_view():
     limit = parse_limit(request.args.get("limit"))
     db = get_firestore_db()
     uid = _get_user_id(db)
+    app.logger.info("recently-played uid=%s limit=%s", uid or "", limit)
     if not uid:
         svg = render_error("Please provide ?uid=<spotify id>")
         return _svg_response(svg)
