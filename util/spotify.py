@@ -1,5 +1,4 @@
 from base64 import b64encode
-
 from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
@@ -8,6 +7,8 @@ import requests
 import json
 import os
 import random
+
+DEFAULT_TIMEOUT = (3, 3)
 
 SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 SPOTIFY_SECRET_ID = os.getenv("SPOTIFY_SECRET_ID")
@@ -74,10 +75,20 @@ def get_user_profile(access_token):
 
     return response_json
 
+def _request_with_retry(url, headers, params=None, retries=1):
+    for attempt in range(retries + 1):
+        response = requests.get(
+            url, headers=headers, params=params, timeout=DEFAULT_TIMEOUT
+        )
+        if response.status_code >= 500 and attempt < retries:
+            continue
+        return response
+
+
 def get_recently_play(access_token, limit=10):
     headers = {"Authorization": f"Bearer {access_token}"}
-    response = requests.get(
-        SPOTIFY_URL_RECENTLY_PLAY, headers=headers, params={"limit": limit}
+    response = _request_with_retry(
+        SPOTIFY_URL_RECENTLY_PLAY, headers, params={"limit": limit}
     )
     if response.status_code == 204:
         return {}

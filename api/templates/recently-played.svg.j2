@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="{{ width }}" height="{{ height }}">
+  <style>
+    text { font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif; fill: #e6edf3; }
+    svg { background: #0d1117; }
+  </style>
+  <g transform="translate({{ pad }}, {{ pad }})">
+    <text x="0" y="0" font-size="18" font-weight="bold">Recently played</text>
+    {% if items -%}
+    {% for item in items -%}
+      {% set track = item.track %}
+      {% set artists = track.artists | map(attribute='name') | join(', ') %}
+      {% set y = 24 + row_h * loop.index0 %}
+      {% if track.album and track.album.images -%}
+        <image x="0" y="{{ y - img + 8 }}" width="{{ img }}" height="{{ img }}" href="{{ track.album.images[0].url }}" />
+        <text x="{{ img + 8 }}" y="{{ y }}" font-size="14">{{ loop.index }}. {{ track.name|e }} - {{ artists|e }}</text>
+      {% else -%}
+        <text x="0" y="{{ y }}" font-size="14">{{ loop.index }}. {{ track.name|e }} - {{ artists|e }}</text>
+      {% endif -%}
+    {% endfor -%}
+    {% else -%}
+      <text x="0" y="30" font-size="14">No recent tracks</text>
+    {% endif -%}
+  </g>
+</svg>

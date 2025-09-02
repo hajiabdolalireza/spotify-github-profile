@@ -91,7 +91,14 @@ def test_error_rate_limit_returns_svg(client, monkeypatch):
 
 def test_success_path(client, monkeypatch):
     items = [
-        {"track": {"name": f"S{i}", "artists": [{"name": f"A{i}"}]}} for i in range(5)
+        {
+            "track": {
+                "name": f"S{i}",
+                "artists": [{"name": f"A{i}"}],
+                "album": {"images": [{"url": f"https://img/{i}"}]},
+            }
+        }
+        for i in range(5)
     ]
     db = FakeDB(
         {
@@ -106,12 +113,23 @@ def test_success_path(client, monkeypatch):
     monkeypatch.setattr("util.spotify.get_recently_play", lambda token, limit=10: {"items": items})
     resp = client.get("/api/recently-played?uid=u1&limit=5")
     text = resp.data.decode()
+    assert text.count("<image") == 5
     assert text.count("</text>") - 1 == 5  # minus header line
     assert resp.headers["Cache-Control"].startswith("public")
 
 
 def test_token_refresh_flow(client, monkeypatch):
-    items = {"items": [{"track": {"name": "S", "artists": [{"name": "A"}]}}]}
+    items = {
+        "items": [
+            {
+                "track": {
+                    "name": "S",
+                    "artists": [{"name": "A"}],
+                    "album": {"images": [{"url": "https://img/1"}]},
+                }
+            }
+        ]
+    }
     db = FakeDB(
         {
             "u1": {
@@ -147,8 +165,20 @@ def test_token_refresh_flow(client, monkeypatch):
 
 def test_snapshot_svg(client, monkeypatch):
     items = [
-        {"track": {"name": "T1", "artists": [{"name": "A1"}]}},
-        {"track": {"name": "T2", "artists": [{"name": "A2"}]}},
+        {
+            "track": {
+                "name": "T1",
+                "artists": [{"name": "A1"}],
+                "album": {"images": [{"url": "https://img/1"}]},
+            }
+        },
+        {
+            "track": {
+                "name": "T2",
+                "artists": [{"name": "A2"}],
+                "album": {"images": [{"url": "https://img/2"}]},
+            }
+        },
     ]
     db = FakeDB(
         {
@@ -165,4 +195,27 @@ def test_snapshot_svg(client, monkeypatch):
     with open("tests/golden_recently_played.svg", "r", encoding="utf-8") as f:
         expected = f.read().strip()
     assert resp.data.decode().strip() == expected
+
+
+def test_etag_support(client, monkeypatch):
+    items = {
+        "items": [
+            {
+                "track": {
+                    "name": "S",
+                    "artists": [{"name": "A"}],
+                    "album": {"images": [{"url": "https://img/1"}]},
+                }
+            }
+        ]
+    }
+    db = FakeDB({"u1": {"access_token": "t", "refresh_token": "r", "token_expired_timestamp": int(time.time()) + 60}})
+    monkeypatch.setattr("api.recently_played.get_firestore_db", lambda: db)
+    monkeypatch.setattr("util.spotify.get_recently_play", lambda *a, **k: items)
+    first = client.get("/api/recently-played?uid=u1")
+    etag = first.headers["ETag"]
+    second = client.get("/api/recently-played?uid=u1", headers={"If-None-Match": etag})
+    assert first.status_code == 200
+    assert second.status_code == 304
+    assert second.data == b""
 

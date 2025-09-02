@@ -136,6 +136,12 @@ curl -i 'http://localhost:3000/api/recently-played?uid=TEST&limit=3'
 curl -i 'http://localhost:3000/api/ping'
 ```
 
+## Troubleshooting
+
+- **404 errors** – confirm the route file exists and that `vercel.json` contains the correct rewrites for the endpoint.
+- **No logs** – ensure the Flask application prints or logs to stdout so Vercel captures output.
+- **Paused project** – verify the Vercel project is active and not paused, otherwise requests will fail silently.
+
 ## How to Contribute
 
 - Develop locally and submit a pull request!
