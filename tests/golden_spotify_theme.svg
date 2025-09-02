@@ -9,19 +9,16 @@
       .time  { fill:#9AA3AE;     font: 16px/1        -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,"Helvetica Neue",sans-serif; text-anchor:end; }
       .sep   { stroke:#2B2F33; stroke-width:1; opacity:.9; }
       .logo  { fill:#1DB954; }
-      image  { clip-path:url(#cover); }
     </style>
-    <clipPath id="cover">
-      <rect rx="8" ry="8" width="56" height="56"/>
-    </clipPath>
+    <clipPath id="cover"><rect rx="8" ry="8" width="56" height="56"/></clipPath>
   </defs>
 
   <rect x="0" y="0" width="920" height="360" rx="18" ry="18" class="card"/>
 
   <g transform="translate(28, 24)">
-    <g transform="translate(0,0) scale(1.2)">
-      <path class="logo" d="M30 15c8.28 0 15 6.72 15 15s-6.72 15-15 15S15 38.28 15 30 21.72 15 30 15zm6.77 22.25a1.88 1.88 0 0 0-2.58-.63c-3.04 1.86-6.87 2.28-11.38 1.24a1.88 1.88 0 1 0-.82 3.65c5.30 1.19 9.77.67 13.30-1.53.83-.51 1.08-1.6.48-2.73zm1.52-6.18a2.25 2.25 0 0 0-3.10-.76c-3.54 2.16-8.95 2.80-15.03 1.53a2.25 2.25 0 0 0-.93 4.40c7.00 1.48 13.31.74 17.72-1.94a2.25 2.25 0 0 0 .34-3.23zm.38-6.26a2.63 2.63 0 0 0-3.62-.88c-3.97 2.43-10.61 3.23-17.77 1.76a2.63 2.63 0 1 0-1.09 5.14c8.09 1.71 15.78.85 20.90-2.23a2.63 2.63 0 0 0 .58-3.79z"/>
-    </g>
+    <svg x="0" y="0" width="36" height="36" viewBox="0 0 60 60" aria-hidden="true">
+      <path fill="#1DB954" d="M30 15c8.28 0 15 6.72 15 15s-6.72 15-15 15S15 38.28 15 30 21.72 15 30 15zm6.77 22.25a1.88 1.88 0 0 0-2.58-.63c-3.04 1.86-6.87 2.28-11.38 1.24a1.88 1.88 0 1 0-.82 3.65c5.30 1.19 9.77.67 13.30-1.53.83-.51 1.08-1.6.48-2.73zm1.52-6.18a2.25 2.25 0 0 0-3.10-.76c-3.54 2.16-8.95 2.80-15.03 1.53a2.25 2.25 0 0 0-.93 4.40c7.00 1.48 13.31.74 17.72-1.94a2.25 2.25 0 0 0 .34-3.23zm.38-6.26a2.63 2.63 0 0 0-3.62-.88c-3.97 2.43-10.61 3.23-17.77 1.76a2.63 2.63 0 1 0-1.09 5.14c8.09 1.71 15.78.85 20.90-2.23a2.63 2.63 0 0 0 .58-3.79z"/>
+    </svg>
     <text x="64" y="30" class="tSpot">Spotify</text>
     <text x="184" y="30" class="tHead">Recently Played</text>
   </g>
@@ -32,10 +29,10 @@
     
     <g transform="translate(28, 74)">
       
-        <image href="https://img/1" x="0" y="16" width="56" height="56"/>
+        <image href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=" x="0" y="16" width="56" height="56" preserveAspectRatio="xMidYMid slice" clip-path="url(#cover)"/>
       
-      <text x="76" y="44" class="track">T1</text>
-      <text x="76" y="68" class="artist">A1</text>
+      <text x="76" y="44" class="track">T0</text>
+      <text x="76" y="68" class="artist">A0</text>
       <text x="892" y="52" class="time">1 min. ago</text>
     </g>
     
@@ -45,11 +42,11 @@
     
     <g transform="translate(28, 162)">
       
-        <image href="https://img/2" x="0" y="16" width="56" height="56"/>
+        <image href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=" x="0" y="16" width="56" height="56" preserveAspectRatio="xMidYMid slice" clip-path="url(#cover)"/>
       
-      <text x="76" y="44" class="track">T2</text>
-      <text x="76" y="68" class="artist">A2</text>
-      <text x="892" y="52" class="time">2 hr. ago</text>
+      <text x="76" y="44" class="track">T1</text>
+      <text x="76" y="68" class="artist">A1</text>
+      <text x="892" y="52" class="time">1 min. ago</text>
     </g>
     
       <line x1="28" x2="892" y1="250" y2="250" class="sep"/>
@@ -58,11 +55,11 @@
     
     <g transform="translate(28, 250)">
       
-        <image href="https://img/3" x="0" y="16" width="56" height="56"/>
+        <image href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=" x="0" y="16" width="56" height="56" preserveAspectRatio="xMidYMid slice" clip-path="url(#cover)"/>
       
-      <text x="76" y="44" class="track">T3</text>
-      <text x="76" y="68" class="artist">A3</text>
-      <text x="892" y="52" class="time">3 d. ago</text>
+      <text x="76" y="44" class="track">T2</text>
+      <text x="76" y="68" class="artist">A2</text>
+      <text x="892" y="52" class="time">1 min. ago</text>
     </g>
     
   

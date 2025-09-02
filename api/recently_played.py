@@ -7,6 +7,7 @@ from flask import Flask, Response, redirect, render_template, request
 
 from util.firestore import get_firestore_db
 from util import spotify
+from util.images import fetch_data_uri
 from util.logging_utils import setup_logging
 
 app = Flask(__name__)
@@ -164,30 +165,34 @@ def recently_played_view():
             track = item.get("track", {})
             artists = [a.get("name", "") for a in track.get("artists", []) or []]
             images = track.get("album", {}).get("images", []) or []
-            cover = images[0].get("url", "") if images else ""
+            cover = spotify.smallest_image(images)
             tracks.append(
                 {
                     "name": track.get("name", ""),
                     "artists": artists,
                     "cover": cover,
+                    "images": images,
                     "played_at": item.get("played_at", ""),
                 }
             )
 
-        items: List[Dict[str, Any]] = []
-        for t in tracks[:limit]:
-            played_at = t.get("played_at")
-            when = humanize_ago(parse_iso_z(played_at)) if played_at else ""
-            items.append(
-                {
-                    "title": t.get("name", ""),
-                    "artist": ", ".join(t.get("artists", [])),
-                    "cover": t.get("cover"),
-                    "when": when,
-                }
-            )
-
         if theme in ("spotify", "sp"):
+            items: List[Dict[str, Any]] = []
+            for t in tracks[:limit]:
+                played_at = t.get("played_at")
+                when = humanize_ago(parse_iso_z(played_at)) if played_at else ""
+                cover_url = t.get("cover") or (
+                    t.get("images", [{}])[-1].get("url") if t.get("images") else None
+                )
+                cover_data = fetch_data_uri(cover_url) if cover_url else None
+                items.append(
+                    {
+                        "title": t["name"],
+                        "artist": ", ".join(t.get("artists", [])),
+                        "cover": cover_data,
+                        "when": when,
+                    }
+                )
             template = "recently_played_spotify.svg.j2"
             svg = render_template(template, items=items, W=(width or 920))
         else:

@@ -64,38 +64,29 @@ def client():
     return app.test_client()
 
 
-def test_spotify_theme_snapshot(client, monkeypatch):
+def test_spotify_theme_inlines_images(client, monkeypatch):
     items = [
         {
             "track": {
-                "name": "T1",
-                "artists": [{"name": "A1"}],
-                "album": {"images": [{"url": "https://img/1"}]},
+                "name": f"T{i}",
+                "artists": [{"name": f"A{i}"}],
+                "album": {"images": [{"url": f"https://img/{i}"}]},
             },
             "played_at": "2024-01-04T23:59:00Z",
-        },
-        {
-            "track": {
-                "name": "T2",
-                "artists": [{"name": "A2"}],
-                "album": {"images": [{"url": "https://img/2"}]},
-            },
-            "played_at": "2024-01-04T22:00:00Z",
-        },
-        {
-            "track": {
-                "name": "T3",
-                "artists": [{"name": "A3"}],
-                "album": {"images": [{"url": "https://img/3"}]},
-            },
-            "played_at": "2024-01-02T00:00:00Z",
-        },
+        }
+        for i in range(3)
     ]
     db = _base_db()
     monkeypatch.setattr("api.recently_played.get_firestore_db", lambda: db)
     monkeypatch.setattr(
         "util.spotify.get_recently_played", lambda token, limit=3: {"items": items}
     )
+    tiny_png = (
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
+    )
+    monkeypatch.setattr("util.images.fetch_data_uri", lambda url: tiny_png)
+    monkeypatch.setattr("api.recently_played.fetch_data_uri", lambda url: tiny_png)
+
     from datetime import datetime, timezone
 
     class FixedDatetime(datetime):
@@ -108,12 +99,13 @@ def test_spotify_theme_snapshot(client, monkeypatch):
     resp = client.get("/api/recently-played?uid=u1&theme=spotify&limit=3")
     assert resp.status_code == 200
     assert resp.headers["Content-Type"] == "image/svg+xml; charset=utf-8"
-    text = resp.data.decode()
-    assert "Spotify" in text and "Recently Played" in text
-    assert 'href="https://img/1"' in text
+    svg = resp.data.decode()
+    assert 'href="http' not in svg
+    assert "data:image/" in svg
+    assert "Spotify" in svg and "Recently Played" in svg
     with open("tests/golden_spotify_theme.svg", "r", encoding="utf-8") as f:
         expected = f.read().strip()
-    assert text.strip() == expected
+    assert svg.strip() == expected
     etag = resp.headers["ETag"]
     second = client.get(
         "/api/recently-played?uid=u1&theme=spotify&limit=3",

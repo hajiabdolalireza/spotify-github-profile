@@ -77,11 +77,12 @@ Query parameters:
 Aliases `/api/recently_played` and `/api/recentlyplayed` redirect to the primary `/api/recently-played` endpoint.
 
 ### 🎧 Recently Played (Spotify Theme)
-![Spotify Recently Played](https://<your-app>.vercel.app/api/recently-played?limit=5&theme=spotify)
+![Spotify Recently Played](https://<your-app>.vercel.app/api/recently-played?theme=spotify&limit=5)
+> Note: GitHub blocks external resources inside SVG. This endpoint inlines album art as data URIs so it renders reliably on GitHub.
 
 Optional width in Markdown:
 
-<img src="https://<your-app>.vercel.app/api/recently-played?limit=5&theme=spotify" width="720" />
+<img src="https://<your-app>.vercel.app/api/recently-played?theme=spotify&limit=5" width="720" />
 
 Health check endpoint:
 
