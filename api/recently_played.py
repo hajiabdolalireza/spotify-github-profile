@@ -1,6 +1,6 @@
-import hashlib
 import html
 import time
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from flask import Flask, Response, redirect, render_template, request
@@ -15,6 +15,32 @@ setup_logging(app)
 CACHE_CONTROL = "public, max-age=60, stale-while-revalidate=30"
 
 
+def humanize_ago(dt: datetime) -> str:
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    now = datetime.now(timezone.utc)
+    diff = max(0, int((now - dt).total_seconds()))
+    if diff < 90:
+        return "1 min. ago"
+    mins = diff // 60
+    if mins < 60:
+        return f"{mins} min. ago"
+    hours = mins // 60
+    if hours < 24:
+        return f"{hours} hr. ago"
+    days = hours // 24
+    return f"{days} d. ago"
+
+
+def parse_iso_z(s: str) -> datetime:
+    try:
+        if s.endswith("Z"):
+            s = s[:-1] + "+00:00"
+        return datetime.fromisoformat(s)
+    except Exception:
+        return datetime.now(timezone.utc)
+
+
 def parse_limit(value: Any) -> int:
     """Parse ?limit ensuring 1 <= limit <= 10."""
     try:
@@ -25,16 +51,15 @@ def parse_limit(value: Any) -> int:
 
 
 def _svg_response(svg: str) -> Response:
-    etag = hashlib.md5(svg.encode("utf-8")).hexdigest()
+    etag = f'W/"{hash(svg)}"'
+    headers = {
+        "Content-Type": "image/svg+xml; charset=utf-8",
+        "ETag": etag,
+        "Cache-Control": CACHE_CONTROL,
+    }
     if request.headers.get("If-None-Match") == etag:
-        resp = Response(status=304)
-    else:
-        resp = Response(svg, content_type="image/svg+xml; charset=utf-8")
-    resp.headers["Cache-Control"] = CACHE_CONTROL
-    resp.headers["ETag"] = etag
-    if resp.status_code == 304:
-        resp.headers["Content-Type"] = "image/svg+xml; charset=utf-8"
-    return resp
+        return Response(status=304, headers=headers)
+    return Response(svg, headers=headers)
 
 
 def _get_user_id(db) -> str:
@@ -96,15 +121,19 @@ def recently_played_redirect():
 
 @app.route("/api/recently-played", methods=["GET"])
 def recently_played_view():
-    limit = parse_limit(request.args.get("limit"))
-    theme = (request.args.get("theme") or "").lower()
-    width: Optional[int]
+    theme = (request.args.get("theme") or "default").lower()
+
+    def clamp(v, lo, hi):
+        return max(lo, min(hi, v))
+
     try:
-        width_val = request.args.get("width")
-        width = int(width_val) if width_val is not None else None
-        if width is not None and width <= 0:
-            width = None
-    except (TypeError, ValueError):
+        limit = clamp(int(request.args.get("limit", 5)), 1, 10)
+    except Exception:
+        limit = 5
+
+    try:
+        width = int(request.args.get("width")) if request.args.get("width") else None
+    except Exception:
         width = None
     db = get_firestore_db()
     uid = _get_user_id(db)
@@ -127,30 +156,42 @@ def recently_played_view():
             )
             db.collection("users").document(uid).set(info, merge=True)
             data = spotify.get_recently_played(info["access_token"], limit=limit)
-        items = data.get("items", []) if data else []
-        if theme in ("spotify", "sp"):
-            mapped: List[Dict[str, Any]] = []
-            for item in items:
-                track = item.get("track", {})
-                artists = track.get("artists", []) or []
-                artist = ", ".join(a.get("name", "") for a in artists)
-                images = track.get("album", {}).get("images", []) or []
-                cover = images[0].get("url", "") if images else ""
-                mapped.append(
-                    {
-                        "title": track.get("name", ""),
-                        "artist": artist,
-                        "cover": cover,
-                        "when": item.get("played_at", ""),
-                    }
-                )
-            svg = render_template(
-                "recently_played_spotify.svg.j2",
-                items=mapped,
-                W=width or 920,
+
+        raw_items = data.get("items", []) if data else []
+
+        tracks: List[Dict[str, Any]] = []
+        for item in raw_items:
+            track = item.get("track", {})
+            artists = [a.get("name", "") for a in track.get("artists", []) or []]
+            images = track.get("album", {}).get("images", []) or []
+            cover = images[0].get("url", "") if images else ""
+            tracks.append(
+                {
+                    "name": track.get("name", ""),
+                    "artists": artists,
+                    "cover": cover,
+                    "played_at": item.get("played_at", ""),
+                }
             )
+
+        items: List[Dict[str, Any]] = []
+        for t in tracks[:limit]:
+            played_at = t.get("played_at")
+            when = humanize_ago(parse_iso_z(played_at)) if played_at else ""
+            items.append(
+                {
+                    "title": t.get("name", ""),
+                    "artist": ", ".join(t.get("artists", [])),
+                    "cover": t.get("cover"),
+                    "when": when,
+                }
+            )
+
+        if theme in ("spotify", "sp"):
+            template = "recently_played_spotify.svg.j2"
+            svg = render_template(template, items=items, W=(width or 920))
         else:
-            svg = _render_recent(items)
+            svg = _render_recent(raw_items)
         return _svg_response(svg)
     except spotify.RateLimitError:
         return _svg_response(_render_error("Spotify rate limit"))
