@@ -18,14 +18,16 @@ REDIRECT_URI = "{}/callback".format(BASE_URL)
 # scope user-read-currently-playing,user-read-recently-played
 SPOTIFY_URL_REFRESH_TOKEN = "https://accounts.spotify.com/api/token"
 SPOTIFY_URL_NOW_PLAYING = "https://api.spotify.com/v1/me/player/currently-playing?additional_types=track,episode"
-SPOTIFY_URL_RECENTLY_PLAY = (
-    "https://api.spotify.com/v1/me/player/recently-played?limit=10"
-)
+SPOTIFY_URL_RECENTLY_PLAY = "https://api.spotify.com/v1/me/player/recently-played"
 
 SPOTIFY_URL_GENERATE_TOKEN = "https://accounts.spotify.com/api/token"
 SPOTIFY_URL_USER_INFO = "https://api.spotify.com/v1/me"
 
 class InvalidTokenError(Exception):
+    pass
+
+
+class RateLimitError(Exception):
     pass
 
 def get_authorization():
@@ -72,15 +74,18 @@ def get_user_profile(access_token):
 
     return response_json
 
-def get_recently_play(access_token):
-
+def get_recently_play(access_token, limit=10):
     headers = {"Authorization": f"Bearer {access_token}"}
-
-    response = requests.get(SPOTIFY_URL_RECENTLY_PLAY, headers=headers)
-
+    response = requests.get(
+        SPOTIFY_URL_RECENTLY_PLAY, headers=headers, params={"limit": limit}
+    )
     if response.status_code == 204:
         return {}
-
+    if response.status_code == 401:
+        raise InvalidTokenError("invalid or expired token")
+    if response.status_code == 429:
+        raise RateLimitError("rate limited")
+    response.raise_for_status()
     response_json = response.json()
     return response_json
 

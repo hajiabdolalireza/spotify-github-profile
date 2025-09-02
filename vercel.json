@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "functions": {
+    "api/*.py": { "runtime": "python3.11" }
+  },
+  "redirects": [
+    { "source": "/api/recently_played", "destination": "/api/recently-played", "permanent": true },
+    { "source": "/api/recentlyplayed", "destination": "/api/recently-played", "permanent": true }
+  ]
+}
+

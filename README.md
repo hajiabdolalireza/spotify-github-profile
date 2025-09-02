@@ -55,6 +55,27 @@ Please replace your old endpoint `https://spotify-github-profile.vercel.app` to 
 
 
 
+### Recently Played
+
+Render a list of the last tracks you've listened to:
+
+```
+<img src="https://spotify-github-profile.kittinanx.com/api/recently-played?uid=YOUR_SPOTIFY_ID" />
+```
+
+Query parameters:
+
+- `uid` or `user` – Spotify user id. If omitted and only one user token exists in Firestore, that user will be used.
+- `limit` – number of tracks to display (1–10, default 5).
+
+Aliases `/api/recently_played` and `/api/recentlyplayed` redirect to the primary `/api/recently-played` endpoint.
+
+Health check endpoint:
+
+```
+GET /api/ping -> {"ok": true, "time": 1234567890, "version": "dev"}
+```
+
 ## Running for development locally
 
 To develop locally, you need:
@@ -107,6 +128,13 @@ Vercel CLI 20.1.2 dev (beta) — https://vercel.com/feedback
 ```
 
 - Now try to access http://localhost:3000/api/login
+
+### Handy cURL commands
+
+```
+curl -i 'http://localhost:3000/api/recently-played?uid=TEST&limit=3'
+curl -i 'http://localhost:3000/api/ping'
+```
 
 ## How to Contribute
 
