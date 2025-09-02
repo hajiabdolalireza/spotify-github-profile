@@ -89,6 +89,13 @@ def _request_with_retry(url, headers, params=None, retries=1):
         return response
 
 
+def smallest_image(images):
+    """Return URL of the smallest image in Spotify's image array."""
+    if not images:
+        return ""
+    return images[-1].get("url", "") or images[0].get("url", "")
+
+
 def get_recently_played(access_token, limit=5):
     headers = {"Authorization": f"Bearer {access_token}"}
     try:
